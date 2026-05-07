@@ -292,6 +292,25 @@ window.onerror = function(msg, src, line, col, err) {
   }
 };
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
+<script>
+try{
+  var _surl="https://ulucvrekldrjlmpwvjfv.supabase.co",_skey="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsdWN2cmVrbGRyamxtcHd2amZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NTQxMzYsImV4cCI6MjA5MzIzMDEzNn0.qjJso_oSjZjHZD8lP9ScoOGfjVvlMbMS2PvAD8htxYA";
+  window.sbClient=null;window.sbReady=false;
+  window.SUPA_MAP={clients:"clients",employees:"employees",vehicles:"vehicles",roster:"roster",inspections:"inspections",claims:"claims",damageSheets:"ec_sheets",sixtStats:"sixt_stats",audit:"audit_log",users:"users"};
+  function supaSave(k){if(!window.sbReady||!window.DB)return;var t=window.SUPA_MAP[k];if(!t)return;var rows=(window.DB[k]||[]).map(function(x){return{data:x}});window.sbClient.from(t).delete().neq("id",0).then(function(){if(!rows.length)return;for(var i=0;i<rows.length;i+=200){window.sbClient.from(t).insert(rows.slice(i,i+200));}});}
+  var _st={};function supaQueue(k){if(!window.sbReady)return;clearTimeout(_st[k]);_st[k]=setTimeout(function(){supaSave(k);},900);}
+  function supaUploadAll(){var keys=Object.keys(window.SUPA_MAP);var i=0;function next(){if(i>=keys.length){alert("Upload voltooid!");return;}supaSave(keys[i++]);setTimeout(next,300);}next();}
+  function supaLoadUsers(cb){if(!window.sbReady){if(cb)cb();return;}window.sbClient.from("users").select("data").then(function(r){if(!r.error&&r.data&&r.data.length&&window.DB){window.DB.users=r.data.map(function(x){return x.data;});}if(cb)cb();});}
+  document.addEventListener("DOMContentLoaded",function(){
+    if(typeof window.supabase!=="undefined"){
+      window.sbClient=window.supabase.createClient(_surl,_skey);
+      window.sbReady=true;
+      console.log("[WER1] Supabase verbonden");
+    }
+  });
+}catch(e){console.warn("[WER1] Supabase fout:",e);}
+</script>
 <script type="text/babel">
 
 const { useState, useEffect, useRef } = React;
@@ -320,7 +339,7 @@ function fmtDate(d){ if(!d||d.length<10) return d||''; return d.slice(8)+'-'+d.s
 
 const DB = {
   users:[
-    {id:1,name:'Admin Gebruiker',email:'admin@wer1.nl',pw:'admin123',role:'admin',active:true,empId:1,cliId:null},
+    {id:1,name:'Sebastiaan Zoet',email:'sebastiaan@wer1automotive.com',pw:'Wer1Admin2026!',role:'admin',active:true,empId:1,cliId:null},
     {id:2,name:'Sebastiaan Zoet',email:'sebastiaan@wer1automotive.com',pw:'sebas123',role:'planner',active:true,empId:2,cliId:null},
     {id:3,name:'Alain Dhoeman',email:'dhra.d@hotmail.com',pw:'alain123',role:'inspecteur',active:true,empId:3,cliId:null},
     {id:4,name:'Ahmedin Kalic',email:'mojgmeil2@gmail.com',pw:'ahmedin123',role:'inspecteur',active:true,empId:4,cliId:null},
@@ -7991,17 +8010,13 @@ function Login({onLogin}) {
   var [err,   setErr]= React.useState('');
 
   React.useEffect(function() {
-    var u=DB.users.find(function(x){return x.email==="admin@wer1.nl"&&x.pw==="admin123"&&x.active;});
+    var u=DB.users.find(function(x){return x.email==="sebastiaan@wer1automotive.com"&&x.pw==="Wer1Admin2026!"&&x.active;});
     if(u){onLogin(u);}
   },[]);
 
   var submit = function() {
     var u = DB.users.find(function(x){ return x.email===email.trim()&&x.pw===pw; });
     if(!u||!u.active){ setErr('Onjuist e-mailadres of wachtwoord.'); return; }
-    if(u.role!=='admin'&&u.role!=='planner'){
-      setErr('Geen toegang. Gebruik de medewerker-app voor inspecties invoeren.');
-      return;
-    }
     setErr('');
     onLogin(u);
   };
@@ -8244,7 +8259,7 @@ function App() {
             <div className="av">{initials}</div>
             <div><div className="un">{user.name.split(' ')[0]}</div><div className="ur">{user.role}</div></div>
           </div>
-          <button className="btn-lo" onClick={function(){ setUser(null); setPage('dashboard'); }}>Uitloggen</button>
+          <button className="btn-lo" onClick={function(){ try{localStorage.removeItem('wer1_session');}catch(e){} setUser(null); setPage('dashboard'); }}>Uitloggen</button>
         </div>
       </div>
 
@@ -8303,6 +8318,13 @@ function App() {
             }} style={{background:'rgba(12,112,117,.15)',border:'1px solid #0C7075',borderRadius:6,padding:'4px 10px',color:'#0F969C',fontSize:11,cursor:'pointer',fontFamily:"'Aptos','Calibri',sans-serif",fontWeight:600}}>
               💾 Backup
             </button>
+            {window.sbReady&&(
+              <button onClick={function(){if(confirm('Data uploaden naar Supabase?'))supaUploadAll();}}
+                style={{background:'rgba(0,200,83,.15)',border:'1px solid #00c853',borderRadius:6,
+                        padding:'4px 10px',color:'#00c853',fontSize:11,cursor:'pointer',fontWeight:600,marginLeft:4}}>
+                &#x2601; Supabase
+              </button>
+            )}
             <div style={{position:'relative'}}>
               <select value={theme} onChange={function(e){ setTheme(e.target.value); }}
                 style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:7,padding:'4px 26px 4px 8px',color:'var(--text2)',fontSize:11,cursor:'pointer',appearance:'none'}}>
