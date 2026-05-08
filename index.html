@@ -8005,19 +8005,29 @@ function EmployeePortal({empUser, onLogout}) {
 
 
 function Login({onLogin}) {
-  var [email, setE]  = React.useState('admin@wer1.nl');
+  var [email, setE]  = React.useState('');
+  var [remember, setRem] = React.useState(true);
   var [pw,    setPW] = React.useState('');
   var [err,   setErr]= React.useState('');
 
   React.useEffect(function() {
-    var u=DB.users.find(function(x){return x.email==="sebastiaan@wer1automotive.com"&&x.pw==="Wer1Admin2026!"&&x.active;});
-    if(u){onLogin(u);}
+    try{
+      var s=localStorage.getItem('wer1_session');
+      if(s){var sess=JSON.parse(s);var u=DB.users.find(function(x){return x.id===sess.id&&x.active!==false;});if(u){onLogin(u);return;}}
+    }catch(e){}
+    supaLoadUsers(function(){
+      try{
+        var s2=localStorage.getItem('wer1_session');
+        if(s2){var sess2=JSON.parse(s2);var u2=DB.users.find(function(x){return x.id===sess2.id&&x.active!==false;});if(u2){onLogin(u2);}}
+      }catch(e){}
+    });
   },[]);
 
   var submit = function() {
     var u = DB.users.find(function(x){ return x.email===email.trim()&&x.pw===pw; });
     if(!u||!u.active){ setErr('Onjuist e-mailadres of wachtwoord.'); return; }
     setErr('');
+    if(remember){try{localStorage.setItem('wer1_session',JSON.stringify({id:u.id}));}catch(e){}}
     onLogin(u);
   };
 
@@ -8043,6 +8053,10 @@ function Login({onLogin}) {
               style={{width:'100%',background:'#0a0e1a',border:'1px solid rgba(45,90,160,.3)',borderRadius:7,padding:'10px 12px',color:'#e8edf5',fontSize:13,fontFamily:"'Aptos','Calibri',sans-serif",boxSizing:'border-box'}}
               onKeyDown={function(e){if(e.key==='Enter')submit();}}/>
           </div>
+          <label style={{display:'flex',alignItems:'center',gap:8,marginBottom:14,cursor:'pointer'}}>
+            <input type='checkbox' checked={remember} onChange={function(e){setRem(e.target.checked);}} style={{width:16,height:16,cursor:'pointer'}}/>
+            <span style={{fontSize:12,color:'#667788'}}>Ingelogd blijven</span>
+          </label>
           <button onClick={submit}
             style={{width:'100%',background:'#2d5aa0',color:'#fff',border:'none',borderRadius:8,padding:'12px',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:"'Aptos','Calibri',sans-serif"}}>
             Inloggen
