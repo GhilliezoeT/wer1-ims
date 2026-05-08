@@ -340,7 +340,6 @@ function fmtDate(d){ if(!d||d.length<10) return d||''; return d.slice(8)+'-'+d.s
 const DB = {
   users:[
     {id:1,name:'Sebastiaan Zoet',email:'sebastiaan@wer1automotive.com',pw:'Wer1Admin2026!',role:'admin',active:true,empId:1,cliId:null},
-    {id:2,name:'Sebastiaan Zoet',email:'sebastiaan@wer1automotive.com',pw:'sebas123',role:'planner',active:true,empId:2,cliId:null},
     {id:3,name:'Alain Dhoeman',email:'dhra.d@hotmail.com',pw:'alain123',role:'inspecteur',active:true,empId:3,cliId:null},
     {id:4,name:'Ahmedin Kalic',email:'mojgmeil2@gmail.com',pw:'ahmedin123',role:'inspecteur',active:true,empId:4,cliId:null},
     {id:5,name:'Danijela Kovacevic',email:'kovacevicdanijela172@gmail.com',pw:'danijela123',role:'inspecteur',active:true,empId:5,cliId:null},
@@ -8083,13 +8082,16 @@ function UserManagement({user}) {
   ];
   const blank = () => ({name:'',email:'',pw:'',role:'kantoor',active:true,empId:null,cliId:null});
   const save = () => {
-    if(!form.name||!form.email||!form.pw){alert('Naam, e-mail en wachtwoord zijn verplicht.');return;}
+    if(!form.name||!form.email){alert('Naam en e-mail zijn verplicht.');return;}
+    if(modal==='add'&&!form.pw){alert('Wachtwoord is verplicht bij een nieuwe gebruiker.');return;}
     if(modal==='add'){
       if(DB.users.find(function(u){return u.email===form.email;})){alert('E-mail al in gebruik.');return;}
       DB.users.push({...form,id:nid('users'),active:true});
     } else {
       var i=DB.users.findIndex(function(u){return u.id===form.id;});
-      if(i>=0) DB.users[i]={...DB.users[i],...form};
+      var upd={...DB.users[i],...form};
+      if(!form.pw) upd.pw=DB.users[i].pw;
+      if(i>=0) DB.users[i]=upd;
     }
     lsSave(); setList([...DB.users.filter(function(u){return u.active!==false;})]); setMod(null);
   };
@@ -8144,8 +8146,8 @@ function UserManagement({user}) {
             <div className="fg"><label>E-mailadres *</label><input type="email" value={form.email||''} onChange={function(e){setF({...form,email:e.target.value});}}/></div>
             <div className="fg"><label>{modal==='add'?'Wachtwoord *':'Nieuw wachtwoord (leeg = ongewijzigd)'}</label>
               <div style={{display:'flex',gap:6}}>
-                <input type={showPw[form.id]?'text':'password'} value={form.pw||''} onChange={function(e){setF({...form,pw:e.target.value});}} style={{flex:1}}/>
-                <button type="button" className="btn btn-s btn-sm" onClick={function(){setShowPw(function(p){var n={...p};n[form.id]=!n[form.id];return n;});}}>&#x1F441;</button>
+                <input type={showPw[form.id||'new']?'text':'password'} value={form.pw||''} onChange={function(e){setF({...form,pw:e.target.value});}} style={{flex:1}}/>
+                <button type="button" className="btn btn-s btn-sm" onClick={function(){setShowPw(function(p){var n={...p};n[form.id||'new']=!n[form.id||'new'];return n;});}}>{showPw[form.id||'new']?'Verberg':'Toon'}</button>
               </div>
             </div>
             <div className="fg"><label>Rol *</label>
